@@ -17,13 +17,20 @@
         "/intel/disk/smart/*/thermalthrottle/eventcount":{}
       },
       "config": {
-        "/intel/disk/smart": {
-          "proc_path": "/proc",
-          "dev_path": "/dev"
-        }
+	"/intel/disk/smart": {
+	  "proc_path": "/proc",
+	  "dev_path": "/dev"
+	}
       },
       "process": null,
-      "publish": null
+      "publish": [
+          {
+              "plugin_name": "mock-file",
+              "config": {
+                  "file": "/tmp/published_smart.log"
+              }
+          }
+      ]
     }
   }
 }

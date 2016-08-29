@@ -1,4 +1,22 @@
 #!/bin/bash -e
+
+#http://www.apache.org/licenses/LICENSE-2.0.txt
+#
+#
+#Copyright 2015 Intel Corporation
+#
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+
 # The script does automatic checking on a Go package and its sub-packages, including:
 # 1. gofmt         (http://golang.org/cmd/gofmt/)
 # 2. goimports     (https://github.com/bradfitz/goimports)
@@ -7,16 +25,30 @@
 # 5. race detector (http://blog.golang.org/race-detector)
 # 6. test coverage (http://blog.golang.org/cover)
 
-# Capture what test we should run
-TEST_SUITE=$1
+# Either command line or environment should be specified
+if [ $# -ne 1 ] && [ -z "$TEST_SUITE" ]; then
+	echo "ERROR; missing TEST_SUITE (Usage: $0 TEST_SUITE)"
+	exit -2
+fi
+# Capture what test we should run from command line
+if [ -z "$TEST_SUITE" ]; then
+	TEST_SUITE=$1
+fi
+# Check validity
+if [ "$TEST_SUITE" != "unit" ]; then
+	echo "Error; invalid TEST_SUITE (value must be one of 'unit'; received $TEST_SUITE)"
+	exit -1
+fi
 
 if [[ $TEST_SUITE == "unit" ]]; then
 	go get github.com/axw/gocov/gocov
 	go get github.com/mattn/goveralls
+	go get -u github.com/golang/lint/golint
 	go get golang.org/x/tools/cmd/goimports
 	go get github.com/smartystreets/goconvey/convey
 	go get golang.org/x/tools/cmd/cover
-	
+	go get github.com/stretchr/testify
+
 	COVERALLS_TOKEN=t47LG6BQsfLwb9WxB56hXUezvwpED6D11
 	TEST_DIRS="main.go smart/"
 	VET_DIRS=". ./smart/..."
@@ -43,10 +75,10 @@ if [[ $TEST_SUITE == "unit" ]]; then
 	echo "go vet"
 	go vet $VET_DIRS
 	# go test -race ./... - Lets disable for now
- 
+
 	# Run test coverage on each subdirectories and merge the coverage profile.
 	echo "mode: count" > profile.cov
- 
+
 	# Standard go tooling behavior is to ignore dirs with leading underscors
 	for dir in $(find . -maxdepth 10 -not -path './.git*' -not -path '*/_*' -not -path './examples/*' -not -path './scripts/*' -not -path './build/*' -not -path './Godeps/*' -type d);
 	do
@@ -59,9 +91,9 @@ if [[ $TEST_SUITE == "unit" ]]; then
 	    		fi
 		fi
 	done
- 
+
 	go tool cover -func profile.cov
- 
+
 	# Disabled Coveralls.io for now
 	# To submit the test coverage result to coveralls.io,
 	# use goveralls (https://github.com/mattn/goveralls)
