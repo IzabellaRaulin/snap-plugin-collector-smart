@@ -339,7 +339,7 @@ func TestCollectMetrics(t *testing.T) {
 				return &result, nil
 			}
 
-			metrics, _ := sc.CollectMetrics([]plugin.MetricType{
+			metrics, err := sc.CollectMetrics([]plugin.MetricType{
 				{
 					Namespace_: core.NewNamespace("intel", "disk", "smart", "sda").AddStaticElements(metric_ns...),
 					Config_:    cfg,
@@ -347,7 +347,8 @@ func TestCollectMetrics(t *testing.T) {
 			})
 
 			Convey("Asks reader to read metric from correct drive", func() {
-
+				So(err, ShouldBeNil)
+				So(len(metrics), ShouldEqual, 1)
 				So(drive_asked, ShouldEqual, "sda")
 
 				Convey("Returns value of metric from reader", func() {
